@@ -10,7 +10,7 @@ app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 
 mongoose.connect(
-  "mongodb+srv://admin:iBNTjnjGIsiFqpKk@cluster0.clpwi.mongodb.net/inventory-production?retryWrites=true&w=majority",
+  "mongodb+srv://admin:iBNTjnjGIsiFqpKk@cluster0.clpwi.mongodb.net/inventory-test?retryWrites=true&w=majority",
   {
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -109,9 +109,15 @@ app.post("/modify", async function (req, res) {
     if (req.body[property] !== "") newJson[property] = req.body[property];
   }
   //console.log("new json:", newJson);
-  const oldProduct = await Product.findByIdAndUpdate(req.body._id, newJson, {
+  const _oldProduct = await Product.findByIdAndUpdate(req.body._id, newJson, {
     new: false,
   });
+  const oldProduct = {};
+  for (const property in _oldProduct) {
+    if (_oldProduct[property] !== "")
+      oldProduct[property] = _oldProduct[property];
+  }
+
   console.log(req.body);
   var TransactionObj = {
     action: req.body.action,
