@@ -8,9 +8,10 @@ const Transaction = require("./models/Transaction");
 // set the view engine to ejs
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
+const _ = require("lodash");
 
 mongoose.connect(
-  "mongodb+srv://admin:iBNTjnjGIsiFqpKk@cluster0.clpwi.mongodb.net/inventory-test?retryWrites=true&w=majority",
+  "mongodb+srv://admin:iBNTjnjGIsiFqpKk@cluster0.clpwi.mongodb.net/inventory-production?retryWrites=true&w=majority",
   {
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -143,6 +144,39 @@ app.post("/add", async function (req, res) {
   };
   if (result) await new Transaction(TransactionObj).save();
   res.json("Success");
+});
+
+app.post("/reverseTransaction", async function (req, res) {
+  // console.log(req.body);
+  // const trans_id = req.body.trans_id;
+  // const transaction = await Transaction.findOne({ _id: trans_id });
+  // const old_snapshot = transaction.old_snapshot;
+  // const new_snapshot = transaction.new_snapshot;
+  // const action = transaction.action;
+  // if (action === "sell") {
+  //   const newId = new_snapshot._id;
+  //   const _latest_snapshot = await Product.findOne({ _id: newId });
+  //   const latest_snapshot = {};
+  //   for (const property in _latest_snapshot) {
+  //     if (_latest_snapshot[property] !== "")
+  //       latest_snapshot[property] = _latest_snapshot[property];
+  //   }
+  //   console.log(latest_snapshot, new_snapshot);
+  //   //compare latest_snap and new_snap for equal
+  //   if (_.isEqual(latest_snapshot, new_snapshot)) {
+  //     //reverse the transaction
+  //     console.log("Reversing");
+  //     await Product.findOneAndReplace({ _id: _id }, old_snapshot);
+  //     await Transaction.findByIdAndUpdate(
+  //       { _id: trans_id },
+  //       { isReversed: true }
+  //     );
+  //     res.json("Success");
+  //   } else {
+  //     console.log("cannot rev");
+  //     res.json("Cannot reverse");
+  //   }
+  // }
 });
 
 app.listen(PORT, "0.0.0.0", () => {

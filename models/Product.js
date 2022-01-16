@@ -48,19 +48,19 @@ var schema = mongoose.Schema({
   },
   current_stock: {
     type: "String",
-    default: 0,
+    default: "0",
   },
   dp: {
     type: "String",
-    default: 0,
+    default: "0",
   },
   dp_extra: {
     type: "String",
-    default: 0,
+    default: "0",
   },
   mrp: {
     type: "String",
-    default: 0,
+    default: "0",
   },
 });
 var Product = mongoose.model("Product", schema);

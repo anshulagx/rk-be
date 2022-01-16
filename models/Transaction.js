@@ -2,6 +2,10 @@ var mongoose = require("mongoose");
 
 var schema = mongoose.Schema(
   {
+    isReversed: {
+      type: Boolean,
+      default: false,
+    },
     action: {
       type: "String",
       enum: ["sell", "add", "modify"],
