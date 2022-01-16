@@ -9,9 +9,9 @@ const Transaction = require("./models/Transaction");
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 const _ = require("lodash");
-
+require("dotenv").config();
 mongoose.connect(
-  "mongodb+srv://admin:iBNTjnjGIsiFqpKk@cluster0.clpwi.mongodb.net/inventory-production?retryWrites=true&w=majority",
+  process.env.MONGO_URI,
   {
     useNewUrlParser: true,
     useUnifiedTopology: true,
