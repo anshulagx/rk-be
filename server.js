@@ -80,8 +80,6 @@ app.get("/", async function (req, res) {
   res.json(d);
 });
 app.get("/transactions", async function (req, res) {
-  console.log("trans hit");
-
   const d = await Transaction.find().sort({ createdAt: -1 }).limit(50);
   res.json(d);
 });
@@ -109,7 +107,6 @@ app.post("/modify", async function (req, res) {
   for (const property in req.body) {
     if (req.body[property] !== "") newJson[property] = req.body[property];
   }
-  //console.log("new json:", newJson);
   const _oldProduct = await Product.findByIdAndUpdate(req.body._id, newJson, {
     new: false,
   });
@@ -119,7 +116,6 @@ app.post("/modify", async function (req, res) {
       oldProduct[property] = _oldProduct[property];
   }
 
-  console.log(req.body);
   var TransactionObj = {
     action: req.body.action,
     comment: req.body.comment,
@@ -133,8 +129,12 @@ app.post("/modify", async function (req, res) {
   res.json("Success");
 });
 app.post("/add", async function (req, res) {
-  console.log(req.body);
-  const result = await new Product(req.body).save();
+  const filtered = {};
+  for (const property in req.body) {
+    if (req.body[property] !== "") filtered[property] = req.body[property];
+  }
+
+  const result = await new Product(filtered).save();
   var TransactionObj = {
     action: "add",
     comment: req.body.comment,
@@ -147,36 +147,44 @@ app.post("/add", async function (req, res) {
 });
 
 app.post("/reverseTransaction", async function (req, res) {
-  // console.log(req.body);
-  // const trans_id = req.body.trans_id;
-  // const transaction = await Transaction.findOne({ _id: trans_id });
-  // const old_snapshot = transaction.old_snapshot;
-  // const new_snapshot = transaction.new_snapshot;
-  // const action = transaction.action;
-  // if (action === "sell") {
-  //   const newId = new_snapshot._id;
-  //   const _latest_snapshot = await Product.findOne({ _id: newId });
-  //   const latest_snapshot = {};
-  //   for (const property in _latest_snapshot) {
-  //     if (_latest_snapshot[property] !== "")
-  //       latest_snapshot[property] = _latest_snapshot[property];
-  //   }
-  //   console.log(latest_snapshot, new_snapshot);
-  //   //compare latest_snap and new_snap for equal
-  //   if (_.isEqual(latest_snapshot, new_snapshot)) {
-  //     //reverse the transaction
-  //     console.log("Reversing");
-  //     await Product.findOneAndReplace({ _id: _id }, old_snapshot);
-  //     await Transaction.findByIdAndUpdate(
-  //       { _id: trans_id },
-  //       { isReversed: true }
-  //     );
-  //     res.json("Success");
-  //   } else {
-  //     console.log("cannot rev");
-  //     res.json("Cannot reverse");
-  //   }
-  // }
+  const trans_id = req.body.trans_id;
+  const transaction = await Transaction.findOne({ _id: trans_id });
+  const old_snapshot = transaction.old_snapshot;
+  const _new_snapshot = transaction.new_snapshot;
+  const action = transaction.action;
+
+  const newId = _new_snapshot._id;
+  const _latest_snapshot = await Product.findOne({ _id: newId });
+  const latest_snapshot = {};
+  const new_snapshot = {};
+  for (const property in _latest_snapshot) {
+    if (_latest_snapshot[property] !== "")
+      latest_snapshot[property] = _latest_snapshot[property];
+  }
+
+  for (const property in _new_snapshot) {
+    if (_new_snapshot[property] !== "")
+      new_snapshot[property] = _new_snapshot[property];
+  }
+
+  //compare latest_snap and new_snap for equal
+  if (
+    JSON.stringify(new Product(latest_snapshot)) ===
+    JSON.stringify(new Product(new_snapshot))
+  ) {
+    //reverse the transaction
+    console.log("Reversing");
+    if (!old_snapshot) {
+      await Product.deleteOne({ _id: newId });
+    } else await Product.findOneAndReplace({ _id: newId }, old_snapshot);
+    await Transaction.findByIdAndUpdate(
+      { _id: trans_id },
+      { isReversed: true }
+    );
+    res.json({ code: 200, message: "success" });
+  } else {
+    res.json({ code: 404, message: "cannot reverse" });
+  }
 });
 
 app.listen(PORT, "0.0.0.0", () => {
