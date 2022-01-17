@@ -1,2 +1,2 @@
-j={"_id":"61e3edc6b3dcb162f6a937c1","sl_no":"2","category":"Chair","id_no":"2","pirticular":"jn","supplier":"jk","r1_key":"p1","r1_value":"32","current_stock":"0","dp":"22","dp_extra":"","mrp":"100","__v":0} 
-k={"sl_no":"2","category":"Chair","id_no":"2","pirticular":"jn","supplier":"jk","r1_key":"p1","r1_value":"32","current_stock":"0","dp":"22","dp_extra":"0","mrp":"100","_id":"61e3edc6b3dcb162f6a937c1","__v":0}
+{"_id":"61e3eda1b3dcb162f6a937b6","sl_no":"1","category":"Chair","id_no":"1","pirticular":"particular1","supplier":"shah","r1_key":"p1","r1_value":"hello","r2_key":"","r2_value":"","r3_key":"","r3_value":"","r4_key":"","r4_value":"","r5_key":"","r5_value":"","current_stock":"4","dp":"12","dp_extra":"2","mrp":"219","__v":0} 
+{"sl_no":"1","category":"Chair","id_no":"1","pirticular":"particular1","supplier":"shah","r1_key":"p1","r1_value":"hello","current_stock":"4","dp":"12","dp_extra":"2","mrp":"219","_id":"61e3eda1b3dcb162f6a937b6","__v":0}

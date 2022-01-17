@@ -143,7 +143,7 @@ app.post("/add", async function (req, res) {
     author: req.body.author,
   };
   if (result) await new Transaction(TransactionObj).save();
-  res.json("Success");
+  res.redirect("https://rk-fe.pages.dev/add");
 });
 
 app.post("/reverseTransaction", async function (req, res) {
