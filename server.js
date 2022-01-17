@@ -80,7 +80,10 @@ app.get("/", async function (req, res) {
   res.json(d);
 });
 app.get("/transactions", async function (req, res) {
-  const d = await Transaction.find().sort({ createdAt: -1 }).limit(50);
+  const query = {};
+  if (req.query.action) query["action"] = req.query.action;
+
+  const d = await Transaction.find(query).sort({ createdAt: -1 }).limit(50);
   res.json(d);
 });
 app.get("/getCategory", async function (req, res) {
