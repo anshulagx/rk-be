@@ -10,6 +10,8 @@ app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 const _ = require("lodash");
 require("dotenv").config();
+const ExcelJS = require("exceljs");
+
 mongoose.connect(
   process.env.MONGO_URI,
   {
@@ -91,6 +93,90 @@ app.get("/getCategory", async function (req, res) {
 
   res.json(p);
 });
+
+app.get("/generateXls", async function (req, res) {
+  const cat = await Product.find({}).distinct("category");
+
+  const workbook = new ExcelJS.Workbook();
+
+  await Promise.all(
+    cat.map(async (c) => {
+      const worksheet = workbook.addWorksheet(c);
+      // console.log(c);
+      const data = await Product.find({ category: c });
+      // console.log(data.category);
+      worksheet.columns = [
+        {
+          header: "System Number",
+          key: "sl_no",
+          width: 15,
+        },
+        {
+          header: "Category",
+          key: "category",
+          width: 15,
+        },
+        { header: "ID", key: "id_no", width: 10 },
+        { header: "Pirticular", key: "pirticular", width: 20 },
+
+        { header: "Supplier", key: "supplier", width: 20 },
+
+        { header: "Quantity", key: "current_stock", width: 10 },
+        { header: "DP", key: "dp", width: 10 },
+        { header: "Extra charge", key: "dp_extra", width: 10 },
+        { header: "MRP", key: "mrp", width: 10 },
+        data[0].r1_key
+          ? { header: data[0].r1_key, key: "r1_value", width: 10 }
+          : "",
+        data[0].r1_key
+          ? { header: data[0].r2_key, key: "r2_value", width: 10 }
+          : "",
+        data[0].r1_key
+          ? { header: data[0].r3_key, key: "r3_value", width: 10 }
+          : "",
+        data[0].r1_key
+          ? { header: data[0].r4_key, key: "r4_value", width: 10 }
+          : "",
+        data[0].r1_key
+          ? { header: data[0].r5_key, key: "r5_value", width: 10 }
+          : "",
+      ];
+      // console.log(data);
+      data.map((e) => {
+        worksheet.addRow(e);
+      });
+      worksheet.getRow(1).font = {
+        bold: true,
+      };
+
+      // worksheet.getColumn("mrp").fill = {
+      //   type: "pattern",
+      //   pattern: "solid",
+      //   fgColor: { argb: "8fb5f2" },
+      // };
+      worksheet.getRow(1).fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "F08080" },
+      };
+      return;
+    })
+  );
+
+  var fileName = "stk.xlsx";
+
+  res.setHeader(
+    "Content-Type",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  );
+  res.setHeader("Content-Disposition", "attachment; filename=" + fileName);
+
+  await workbook.xlsx.write(res);
+
+  res.end();
+  //  res.json(p);
+});
+
 app.get("/getCategoryParam", async function (req, res) {
   const p = await Product.findOne({ category: req.query.category });
 
