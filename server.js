@@ -83,7 +83,17 @@ app.get("/", async function (req, res) {
 });
 app.get("/transactions", async function (req, res) {
   const query = {};
+
   if (req.query.action) query["action"] = req.query.action;
+  if (req.query.date) {
+    const d1 = new Date(req.query.date);
+    const d2 = new Date(req.query.date);
+    d2.setDate(d2.getDate() - 1);
+    query["createdAt"] = {
+      $lte: d1,
+      $gt: d2,
+    };
+  }
 
   const d = await Transaction.find(query).sort({ createdAt: -1 }).limit(50);
   res.json(d);
