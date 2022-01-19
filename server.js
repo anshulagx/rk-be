@@ -95,7 +95,7 @@ app.get("/transactions", async function (req, res) {
     };
   }
 
-  const d = await Transaction.find(query).sort({ createdAt: -1 }).limit(50);
+  const d = await Transaction.find(query).sort({ createdAt: -1 });
   res.json(d);
 });
 app.get("/getCategory", async function (req, res) {
