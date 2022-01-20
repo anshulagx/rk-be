@@ -6,9 +6,11 @@ const mongoose = require("mongoose");
 const Product = require("./models/Product");
 const ImageSchema = require("./models/Image");
 const Transaction = require("./models/Transaction");
-// set the view engine to ejs
-app.set("view engine", "ejs");
-app.use(express.urlencoded({ limit: "50mb", extended: true }));
+// Parse JSON bodies (as sent by API clients)
+
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb" }));
+
 const _ = require("lodash");
 require("dotenv").config();
 const ExcelJS = require("exceljs");
@@ -23,11 +25,6 @@ mongoose.connect(
     console.log("Connected to Mongo");
   }
 );
-// Parse URL-encoded bodies (as sent by HTML forms)
-app.use(express.urlencoded());
-
-// Parse JSON bodies (as sent by API clients)
-app.use(express.json());
 
 var cors = require("cors");
 app.use(cors());
@@ -202,11 +199,24 @@ app.get("/getCategoryParam", async function (req, res) {
 
   res.json(json);
 });
+
 app.post("/modify", async function (req, res) {
   const newJson = {};
   for (const property in req.body) {
-    if (req.body[property] !== "") newJson[property] = req.body[property];
+    if (req.body[property] !== "" || property !== "image")
+      newJson[property] = req.body[property];
   }
+
+  var imageObj;
+  if (req.body.image)
+    imageObj = await new ImageSchema({ uri: req.body.image }).save();
+  if (imageObj) {
+    newJson["imageObj"] = imageObj._id;
+  }
+  if (req.body.deleteImage) {
+    newJson["imageObj"] = null;
+  }
+  console.log(newJson);
   const _oldProduct = await Product.findByIdAndUpdate(req.body._id, newJson, {
     new: false,
   });
@@ -228,6 +238,7 @@ app.post("/modify", async function (req, res) {
 
   res.json("Success");
 });
+
 app.post("/add", async function (req, res) {
   // console.log(req.body);
   const filtered = {};
