@@ -261,7 +261,7 @@ app.post("/add", async function (req, res) {
     author: req.body.author,
   };
   if (result) await new Transaction(TransactionObj).save();
-  res.redirect("https://rk-fe.pages.dev/add");
+  res.redirect("https://rkinv.pages.dev/add");
 });
 app.get("/getImageByPId", async function (req, res) {
   console.log(req.query);
