@@ -62,6 +62,7 @@ var schema = mongoose.Schema({
     type: "String",
     default: "0",
   },
+  imageObj: mongoose.Types.ObjectId,
 });
 var Product = mongoose.model("Product", schema);
 

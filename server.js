@@ -4,10 +4,11 @@ var express = require("express");
 var app = express();
 const mongoose = require("mongoose");
 const Product = require("./models/Product");
+const ImageSchema = require("./models/Image");
 const Transaction = require("./models/Transaction");
 // set the view engine to ejs
 app.set("view engine", "ejs");
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 const _ = require("lodash");
 require("dotenv").config();
 const ExcelJS = require("exceljs");
@@ -228,11 +229,18 @@ app.post("/modify", async function (req, res) {
   res.json("Success");
 });
 app.post("/add", async function (req, res) {
+  // console.log(req.body);
   const filtered = {};
   for (const property in req.body) {
-    if (req.body[property] !== "") filtered[property] = req.body[property];
+    if (req.body[property] !== "" || property !== "image")
+      filtered[property] = req.body[property];
   }
-
+  var imageObj;
+  if (req.body.image)
+    imageObj = await new ImageSchema({ uri: req.body.image }).save();
+  if (imageObj) {
+    filtered["imageObj"] = imageObj._id;
+  }
   const result = await new Product(filtered).save();
   var TransactionObj = {
     action: "add",
@@ -243,6 +251,22 @@ app.post("/add", async function (req, res) {
   };
   if (result) await new Transaction(TransactionObj).save();
   res.redirect("https://rk-fe.pages.dev/add");
+});
+app.get("/getImageByPId", async function (req, res) {
+  console.log(req.query);
+  const result = await ImageSchema.findOne({ _id: req.query.id });
+  console.log(result.uri.substring(0, 200));
+  var base64Data = result.uri.replace(
+    /^data:image\/(png|jpeg|jpg);base64,/,
+    ""
+  );
+
+  let buff = Buffer.from(base64Data, "base64");
+  res.writeHead(200, {
+    "Content-Type": "image/png",
+    "Content-Length": buff.length,
+  });
+  res.end(buff);
 });
 
 app.post("/reverseTransaction", async function (req, res) {
