@@ -201,6 +201,7 @@ app.get("/getCategoryParam", async function (req, res) {
 });
 
 app.post("/modify", async function (req, res) {
+  console.log(req.body);
   const newJson = {};
   for (const property in req.body) {
     if (req.body[property] !== "" || property !== "image")
@@ -230,11 +231,12 @@ app.post("/modify", async function (req, res) {
     action: req.body.action,
     comment: req.body.comment,
     pid: req.body._id,
+    createdAt: req.body.createdAt,
     old_snapshot: new Product(oldProduct),
     new_snapshot: new Product(newJson),
     author: req.body.author,
   };
-  if (oldProduct) await new Transaction(TransactionObj).save();
+  if (oldProduct) console.log(await new Transaction(TransactionObj).save());
 
   res.json("Success");
 });
@@ -264,9 +266,7 @@ app.post("/add", async function (req, res) {
   res.redirect("https://rkinv.pages.dev/add");
 });
 app.get("/getImageByPId", async function (req, res) {
-  console.log(req.query);
   const result = await ImageSchema.findOne({ _id: req.query.id });
-  console.log(result.uri.substring(0, 200));
   var base64Data = result.uri.replace(
     /^data:image\/(png|jpeg|jpg);base64,/,
     ""
