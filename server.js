@@ -263,7 +263,7 @@ app.post("/add", async function (req, res) {
     author: req.body.author,
   };
   if (result) await new Transaction(TransactionObj).save();
-  res.redirect("https://rkinv.pages.dev/add");
+  res.redirect("http://192.168.1.20:3000/add");
 });
 app.get("/getImageByPId", async function (req, res) {
   const result = await ImageSchema.findOne({ _id: req.query.id });
