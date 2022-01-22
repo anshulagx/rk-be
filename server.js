@@ -110,9 +110,9 @@ app.get("/generateXls", async function (req, res) {
   await Promise.all(
     cat.map(async (c) => {
       const worksheet = workbook.addWorksheet(c);
-      // console.log(c);
+
       const data = await Product.find({ category: c });
-      // console.log(data.category);
+
       worksheet.columns = [
         {
           header: "System Number",
@@ -149,7 +149,7 @@ app.get("/generateXls", async function (req, res) {
           ? { header: data[0].r5_key, key: "r5_value", width: 10 }
           : "",
       ];
-      // console.log(data);
+
       data.map((e) => {
         worksheet.addRow(e);
       });
@@ -201,7 +201,6 @@ app.get("/getCategoryParam", async function (req, res) {
 });
 
 app.post("/modify", async function (req, res) {
-  console.log(req.body);
   const newJson = {};
   for (const property in req.body) {
     if (req.body[property] !== "" || property !== "image")
@@ -217,7 +216,7 @@ app.post("/modify", async function (req, res) {
   if (req.body.deleteImage) {
     newJson["imageObj"] = null;
   }
-  console.log(newJson);
+
   const _oldProduct = await Product.findByIdAndUpdate(req.body._id, newJson, {
     new: false,
   });
@@ -236,7 +235,7 @@ app.post("/modify", async function (req, res) {
     new_snapshot: new Product(newJson),
     author: req.body.author,
   };
-  if (oldProduct) console.log(await new Transaction(TransactionObj).save());
+  if (oldProduct) await new Transaction(TransactionObj).save();
 
   res.json("Success");
 });
@@ -307,7 +306,6 @@ app.post("/reverseTransaction", async function (req, res) {
     JSON.stringify(new Product(new_snapshot))
   ) {
     //reverse the transaction
-    console.log("Reversing");
     if (!old_snapshot) {
       await Product.deleteOne({ _id: newId });
     } else await Product.findOneAndReplace({ _id: newId }, old_snapshot);
