@@ -98,6 +98,12 @@ app.get("/transactions", async function (req, res) {
 });
 app.get("/getCategory", async function (req, res) {
   const p = await Product.find({}).distinct("category");
+  // console.log(p);
+  p.sort(function (a, b) {
+    if (a.toLowerCase() < b.toLowerCase()) return -1;
+    if (a.toLowerCase() > b.toLowerCase()) return 1;
+    return 0;
+  });
 
   res.json(p);
 });

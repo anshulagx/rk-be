@@ -6,6 +6,7 @@ var schema = mongoose.Schema({
   },
   category: {
     type: "String",
+    lowercase: true,
   },
   id_no: {
     type: "String",
