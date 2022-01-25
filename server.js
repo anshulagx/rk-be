@@ -268,7 +268,7 @@ app.post("/add", async function (req, res) {
     author: req.body.author,
   };
   if (result) await new Transaction(TransactionObj).save();
-  res.redirect("http://192.168.1.20:3000/add");
+  res.redirect(process.env.REDIRECT_URL);
 });
 app.get("/getImageByPId", async function (req, res) {
   const result = await ImageSchema.findOne({ _id: req.query.id });
