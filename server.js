@@ -27,6 +27,7 @@ mongoose.connect(
 );
 
 var cors = require("cors");
+const { query } = require("express");
 app.use(cors());
 // index page
 // function fun() {
@@ -142,16 +143,16 @@ app.get("/generateXls", async function (req, res) {
         data[0].r1_key
           ? { header: data[0].r1_key, key: "r1_value", width: 10 }
           : "",
-        data[0].r1_key
+        data[0].r2_key
           ? { header: data[0].r2_key, key: "r2_value", width: 10 }
           : "",
-        data[0].r1_key
+        data[0].r3_key
           ? { header: data[0].r3_key, key: "r3_value", width: 10 }
           : "",
-        data[0].r1_key
+        data[0].r4_key
           ? { header: data[0].r4_key, key: "r4_value", width: 10 }
           : "",
-        data[0].r1_key
+        data[0].r5_key
           ? { header: data[0].r5_key, key: "r5_value", width: 10 }
           : "",
       ];
@@ -190,6 +191,294 @@ app.get("/generateXls", async function (req, res) {
   res.end();
   //  res.json(p);
 });
+
+app.get("/gtxls", async function (req, res) {
+  var query = {};
+  const d1 = new Date();
+  const d2 = new Date();
+  d2.setDate(d2.getDate() - 1);
+  query["createdAt"] = {
+    $lte: d1,
+    $gt: d2,
+  };
+
+  const workbook = new ExcelJS.Workbook();
+
+  const worksheet = workbook.addWorksheet("Daily report");
+
+  worksheet.columns = [
+    {
+      header: "No",
+      key: "sl_no",
+      width: 5,
+    },
+    {
+      header: "Time",
+      key: "time",
+      width: 15,
+    },
+    {
+      header: "Category",
+      key: "category",
+      width: 15,
+    },
+    { header: "ID", key: "id_no", width: 7 },
+    { header: "Pirticular", key: "pirticular", width: 25 },
+
+    { header: "Quantity", key: "qty", width: 5 },
+    { header: "MRP", key: "mrp", width: 10 },
+    { header: "SP", key: "sp", width: 10 },
+
+    { header: "Comment", key: "comment", width: 20 },
+  ];
+
+  const sellTr = await Transaction.find({ ...query, action: "sell" }).sort({
+    updatedAt: -1,
+  });
+  const addTr = await Transaction.find({ ...query, action: "add" }).sort({
+    updatedAt: -1,
+  });
+  const modifyTr = await Transaction.find({ ...query, action: "modify" }).sort({
+    updatedAt: -1,
+  });
+
+  var rowNo = 1;
+  worksheet.addRow("");
+  rowNo++;
+  worksheet.mergeCells("A" + rowNo + ":I" + rowNo);
+
+  worksheet.addRow({ sl_no: "SELL on " + new Date().toLocaleDateString() });
+  rowNo++;
+  worksheet.mergeCells("A" + rowNo + ":I" + rowNo);
+  worksheet.getRow(rowNo).font = {
+    // name: "Comic Sans MS",
+    family: 4,
+    size: 25,
+    // underline: true,
+    // bold: true,
+  };
+  sellTr.map((e, i) => {
+    worksheet.addRow({
+      sl_no: rowNo + 1,
+      time: new Date(e.createdAt).toLocaleTimeString(),
+      category: e.new_snapshot.category,
+      id_no: e.new_snapshot.id_no,
+      pirticular:
+        e.new_snapshot.pirticular +
+        " " +
+        (e.new_snapshot.r1_value || "") +
+        " " +
+        (e.new_snapshot.r2_value || "") +
+        " " +
+        (e.new_snapshot.r3_value || ""),
+      qty: e.old_snapshot
+        ? parseInt(e.old_snapshot.current_stock) -
+          parseInt(e.new_snapshot.current_stock)
+        : "nil",
+      sp: e.sold_at_price,
+      comment: e.comment || "",
+      mrp: e.new_snapshot.mrp,
+    });
+    rowNo++;
+    worksheet.getRow(rowNo).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: {
+        argb: e.isReversed ? "e6435b" : "f291c0",
+      },
+    };
+    worksheet.getRow(rowNo).border = {
+      top: { style: "double", color: { argb: "000000" } },
+      left: { style: "double", color: { argb: "000000" } },
+      bottom: { style: "double", color: { argb: "000000" } },
+      right: { style: "double", color: { argb: "000000" } },
+    };
+    worksheet.getRow(rowNo).alignment = { wrapText: true };
+
+    worksheet.getRow(rowNo).font = {
+      // name: "Comic Sans MS",
+      family: 4,
+      size: 15,
+      // underline: true,
+      // bold: true,
+    };
+  });
+
+  worksheet.addRow("");
+  rowNo++;
+  worksheet.mergeCells("A" + rowNo + ":I" + rowNo);
+
+  worksheet.addRow({ sl_no: "ADD" });
+  rowNo++;
+  worksheet.mergeCells("A" + rowNo + ":I" + rowNo);
+  worksheet.getRow(rowNo).font = {
+    // name: "Comic Sans MS",
+    family: 4,
+    size: 25,
+    // underline: true,
+    // bold: true,
+  };
+  addTr.map((e, i) => {
+    worksheet.addRow({
+      sl_no: rowNo + 1,
+      time: new Date(e.createdAt).toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+      }),
+      category: e.new_snapshot.category,
+      id_no: e.new_snapshot.id_no,
+      pirticular:
+        e.new_snapshot.pirticular +
+        " " +
+        (e.new_snapshot.r1_value || "") +
+        " " +
+        (e.new_snapshot.r2_value || "") +
+        " " +
+        (e.new_snapshot.r3_value || ""),
+      qty: e.old_snapshot
+        ? parseInt(e.new_snapshot.current_stock) -
+          parseInt(e.old_snapshot.current_stock)
+        : "nil",
+      // sp: e.sold_at_price,
+      comment: e.comment || "",
+      mrp: e.new_snapshot.mrp,
+    });
+    rowNo++;
+    worksheet.getRow(rowNo).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: {
+        argb: e.isReversed ? "e6435b" : "8bb7f0",
+      },
+    };
+    worksheet.getRow(rowNo).border = {
+      top: { style: "double", color: { argb: "000000" } },
+      left: { style: "double", color: { argb: "000000" } },
+      bottom: { style: "double", color: { argb: "000000" } },
+      right: { style: "double", color: { argb: "000000" } },
+    };
+    worksheet.getRow(rowNo).alignment = { wrapText: true };
+
+    worksheet.getRow(rowNo).font = {
+      // name: "Comic Sans MS",
+      family: 4,
+      size: 15,
+      // underline: true,
+      // bold: true,
+    };
+  });
+
+  worksheet.addRow("");
+  rowNo++;
+  worksheet.mergeCells("A" + rowNo + ":I" + rowNo);
+
+  worksheet.addRow({ sl_no: "MODIFICATION" });
+  rowNo++;
+  worksheet.mergeCells("A" + rowNo + ":I" + rowNo);
+  worksheet.getRow(rowNo).font = {
+    // name: "Comic Sans MS",
+    family: 4,
+    size: 25,
+    // underline: true,
+    // bold: true,
+  };
+  modifyTr.map((e, i) => {
+    worksheet.addRow({
+      sl_no: rowNo + 1,
+      time: new Date(e.createdAt).toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+      }),
+      category: e.new_snapshot.category,
+      id_no: e.new_snapshot.id_no,
+      pirticular:
+        e.new_snapshot.pirticular +
+        " " +
+        (e.new_snapshot.r1_value || "") +
+        " " +
+        (e.new_snapshot.r2_value || "") +
+        " " +
+        (e.new_snapshot.r3_value || ""),
+
+      qty:
+        (e.comment || "") +
+        generateModificationString(e.old_snapshot, e.new_snapshot),
+    });
+    rowNo++;
+    worksheet.mergeCells("F" + rowNo + ":I" + rowNo);
+    worksheet.getRow(rowNo).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: {
+        argb: e.isReversed ? "e6435b" : "b4ede3",
+      },
+    };
+    worksheet.getRow(rowNo).border = {
+      top: { style: "double", color: { argb: "000000" } },
+      left: { style: "double", color: { argb: "000000" } },
+      bottom: { style: "double", color: { argb: "000000" } },
+      right: { style: "double", color: { argb: "000000" } },
+    };
+    worksheet.getRow(rowNo).alignment = { wrapText: true };
+
+    worksheet.getRow(rowNo).font = {
+      // name: "Comic Sans MS",
+      family: 4,
+      size: 15,
+      // underline: true,
+      // bold: true,
+    };
+  });
+
+  worksheet.getRow(1).fill = {
+    type: "pattern",
+    pattern: "solid",
+    fgColor: { argb: "F08080" },
+  };
+
+  worksheet.getRow(1).font = {
+    // name: "Comic Sans MS",
+    family: 4,
+    size: 16,
+    // underline: true,
+    bold: true,
+  };
+  var fileName = "stk.xlsx";
+
+  res.setHeader(
+    "Content-Type",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  );
+  res.setHeader("Content-Disposition", "attachment; filename=" + fileName);
+
+  await workbook.xlsx.write(res);
+
+  res.end();
+  //  res.json(p);
+});
+
+function generateModificationString(s1, s2) {
+  var str = "";
+  for (const key in s2) {
+    if (s1 && s2)
+      if (s1[key] !== s2[key])
+        if (key !== "_id" && key !== "imageObj")
+          if (!(s1[key] === undefined && s2[key] === "")) {
+            str +=
+              "\n→" +
+              key +
+              " changed from " +
+              (s1[key] || "NIL") +
+              " to " +
+              (s2[key] || "NIL");
+
+            // console.log(str);
+          }
+  }
+  return str;
+}
 
 app.get("/getCategoryParam", async function (req, res) {
   const p = await Product.findOne({ category: req.query.category });
