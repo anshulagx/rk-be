@@ -240,6 +240,7 @@ app.post("/modify", async function (req, res) {
     old_snapshot: new Product(oldProduct),
     new_snapshot: new Product(newJson),
     author: req.body.author,
+    sold_at_price: req.body.sold_at_price,
   };
   if (oldProduct) await new Transaction(TransactionObj).save();
 
