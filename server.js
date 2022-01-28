@@ -84,6 +84,8 @@ app.get("/transactions", async function (req, res) {
   const query = {};
 
   if (req.query.action) query["action"] = req.query.action;
+  if (req.query.pid) query["pid"] = req.query.pid;
+
   if (req.query.date) {
     const d1 = new Date(req.query.date);
     const d2 = new Date(req.query.date);
