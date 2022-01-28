@@ -207,42 +207,68 @@ app.get("/generateXls", async function (req, res) {
 
 app.get("/gtxls", async function (req, res) {
   var query = {};
-  const d1 = new Date();
-  const d2 = new Date();
-  d2.setDate(d2.getDate() - 1);
+  const d1 = new Date(new Date().setHours(5, 30, 0));
+  // console.log(d1.toUTCString());
+  const d2 = new Date(new Date().setHours(5, 30, 0));
+  d2.setDate(d2.getDate() + 1);
   query["createdAt"] = {
-    $lte: d1,
-    $gt: d2,
+    $lte: d2,
+    $gt: d1,
   };
+  console.log(query);
 
   const workbook = new ExcelJS.Workbook();
 
   const worksheet = workbook.addWorksheet("Daily report");
-
+  // worksheet.addRow("");
   worksheet.columns = [
     {
-      header: "No",
+      // header: "No",
       key: "sl_no",
       width: 5,
     },
     {
-      header: "Time",
+      // header: "Time",
       key: "time",
       width: 15,
     },
     {
-      header: "Category",
+      // header: "Category",
       key: "category",
       width: 15,
     },
-    { header: "ID", key: "id_no", width: 7 },
-    { header: "Pirticular", key: "pirticular", width: 25 },
+    {
+      // header: "ID",
+      key: "id_no",
+      width: 7,
+    },
+    {
+      // header: "Pirticular",
+      key: "pirticular",
+      width: 25,
+    },
 
-    { header: "Quantity", key: "qty", width: 5 },
-    { header: "MRP", key: "mrp", width: 10 },
-    { header: "SP", key: "sp", width: 10 },
+    {
+      //  header: "Quantity",
+      key: "qty",
+      width: 5,
+    },
+    {
+      // header: "MRP",
+      key: "mrp",
+      width: 10,
+    },
+    {
+      // header: "SP",
+      key: "sp",
+      width: 10,
+    },
 
-    { header: "Comment", key: "comment", width: 20 },
+    {
+      // header: "Comment",
+      key: "comment",
+      width: 20,
+    },
   ];
 
   const sellTr = await Transaction.find({ ...query, action: "sell" }).sort({
@@ -256,11 +282,39 @@ app.get("/gtxls", async function (req, res) {
   });
 
   var rowNo = 1;
-  worksheet.addRow("");
+
+  worksheet.addRow({ sl_no: "Daily Report" });
   rowNo++;
+  worksheet.getRow(rowNo).font = {
+    // name: "Comic Sans MS",
+    family: 4,
+    size: 20,
+    // underline: true,
+    // bold: true,
+  };
   worksheet.mergeCells("A" + rowNo + ":I" + rowNo);
 
-  worksheet.addRow({ sl_no: "SELL on " + new Date().toLocaleDateString() });
+  worksheet.addRow({
+    sl_no: new Date().toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }),
+  });
+  rowNo++;
+  worksheet.mergeCells("A" + rowNo + ":I" + rowNo);
+  worksheet.getRow(rowNo).font = {
+    // name: "Comic Sans MS",
+    family: 4,
+    size: 20,
+    // underline: true,
+    // bold: true,
+  };
+
+  worksheet.addRow({
+    sl_no: "SELL",
+  });
   rowNo++;
   worksheet.mergeCells("A" + rowNo + ":I" + rowNo);
   worksheet.getRow(rowNo).font = {
@@ -270,6 +324,25 @@ app.get("/gtxls", async function (req, res) {
     // underline: true,
     // bold: true,
   };
+
+  worksheet.addRow({
+    sl_no: "No",
+    time: "Time",
+    category: "Category",
+    id_no: "ID",
+    pirticular: "Pirticular",
+    qty: "Qty",
+    mrp: "MRP",
+    sp: "SP",
+    comment: "Comment",
+  });
+  rowNo++;
+  worksheet.getRow(rowNo).fill = {
+    type: "pattern",
+    pattern: "solid",
+    fgColor: { argb: "F08080" },
+  };
+
   sellTr.map((e, i) => {
     worksheet.addRow({
       sl_no: rowNo + 1,
@@ -319,10 +392,11 @@ app.get("/gtxls", async function (req, res) {
 
   worksheet.addRow("");
   rowNo++;
-  worksheet.mergeCells("A" + rowNo + ":I" + rowNo);
 
+  worksheet.mergeCells("A" + rowNo + ":I" + rowNo);
   worksheet.addRow({ sl_no: "ADD" });
   rowNo++;
+
   worksheet.mergeCells("A" + rowNo + ":I" + rowNo);
   worksheet.getRow(rowNo).font = {
     // name: "Comic Sans MS",
@@ -331,6 +405,25 @@ app.get("/gtxls", async function (req, res) {
     // underline: true,
     // bold: true,
   };
+
+  worksheet.addRow({
+    sl_no: "No",
+    time: "Time",
+    category: "Category",
+    id_no: "ID",
+    pirticular: "Pirticular",
+    qty: "Qty",
+    mrp: "MRP",
+    sp: "SP",
+    comment: "Comment",
+  });
+  rowNo++;
+  worksheet.getRow(rowNo).fill = {
+    type: "pattern",
+    pattern: "solid",
+    fgColor: { argb: "F08080" },
+  };
+
   addTr.map((e, i) => {
     worksheet.addRow({
       sl_no: rowNo + 1,
@@ -396,6 +489,23 @@ app.get("/gtxls", async function (req, res) {
     // underline: true,
     // bold: true,
   };
+
+  worksheet.addRow({
+    sl_no: "No",
+    time: "Time",
+    category: "Category",
+    id_no: "ID",
+    pirticular: "Pirticular",
+
+    comment: "Comment",
+  });
+  rowNo++;
+  worksheet.getRow(rowNo).fill = {
+    type: "pattern",
+    pattern: "solid",
+    fgColor: { argb: "F08080" },
+  };
+
   modifyTr.map((e, i) => {
     worksheet.addRow({
       sl_no: rowNo + 1,
@@ -445,19 +555,19 @@ app.get("/gtxls", async function (req, res) {
     };
   });
 
-  worksheet.getRow(1).fill = {
-    type: "pattern",
-    pattern: "solid",
-    fgColor: { argb: "F08080" },
-  };
+  // worksheet.getRow(1).fill = {
+  //   type: "pattern",
+  //   pattern: "solid",
+  //   fgColor: { argb: "F08080" },
+  // };
 
-  worksheet.getRow(1).font = {
-    // name: "Comic Sans MS",
-    family: 4,
-    size: 16,
-    // underline: true,
-    bold: true,
-  };
+  // worksheet.getRow(1).font = {
+  //   // name: "Comic Sans MS",
+  //   family: 4,
+  //   size: 16,
+  //   // underline: true,
+  //   bold: true,
+  // };
   var fileName = "stk.xlsx";
 
   res.setHeader(
