@@ -95,7 +95,18 @@ app.get("/transactions", async function (req, res) {
   }
 
   const d = await Transaction.find(query).sort({ createdAt: -1 });
-  res.json(d);
+  console.log();
+  res.json(
+    d.map((e) => {
+      return {
+        ...e._doc,
+        modification_string: generateModificationArray(
+          e.old_snapshot,
+          e.new_snapshot
+        ),
+      };
+    })
+  );
 });
 app.get("/getCategory", async function (req, res) {
   const p = await Product.find({}).distinct("category");
@@ -464,15 +475,29 @@ function generateModificationString(s1, s2) {
   for (const key in s2) {
     if (s1 && s2)
       if (s1[key] !== s2[key])
-        if (key !== "_id" && key !== "imageObj")
+        if (key !== "_id")
           if (!(s1[key] === undefined && s2[key] === "")) {
             str +=
-              "\n→" +
+              "→" +
               key +
               " changed from " +
               (s1[key] || "NIL") +
               " to " +
               (s2[key] || "NIL");
+
+            // console.log(str);
+          }
+  }
+  return str;
+}
+function generateModificationArray(s1, s2) {
+  var str = [];
+  for (const key in s2) {
+    if (s1 && s2)
+      if (s1[key] !== s2[key])
+        if (key !== "_id")
+          if (!(s1[key] === undefined && s2[key] === "")) {
+            str.push({ key: key, old: s1[key], new: s2[key] });
 
             // console.log(str);
           }
