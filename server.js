@@ -343,7 +343,9 @@ app.get("/gtxls", async function (req, res) {
     fgColor: { argb: "F08080" },
   };
 
+  var total_sale = 0;
   sellTr.map((e, i) => {
+    total_sale += parseInt(e.sold_at_price);
     worksheet.addRow({
       sl_no: rowNo + 1,
       time: new Date(e.createdAt).toLocaleTimeString(),
@@ -389,6 +391,9 @@ app.get("/gtxls", async function (req, res) {
       // bold: true,
     };
   });
+
+  worksheet.addRow({ sp: "Total:", comment: total_sale });
+  rowNo++;
 
   worksheet.addRow("");
   rowNo++;
