@@ -87,17 +87,26 @@ app.get("/transactions", async function (req, res) {
   if (req.query.pid) query["pid"] = req.query.pid;
 
   if (req.query.date) {
-    const d1 = new Date(req.query.date);
-    const d2 = new Date(req.query.date);
-    d2.setDate(d2.getDate() - 1);
+    // const d1 = new Date(req.query.date);
+    // const d2 = new Date(req.query.date);
+    // d2.setDate(d2.getDate() - 1);
+    // query["createdAt"] = {
+    //   $lte: d1,
+    //   $gt: d2,
+    // };
+
+    const d1 = new Date(new Date(req.query.date).setHours(5, 30, 0));
+    const d2 = new Date(new Date(req.query.date).setHours(5, 30, 0));
+    d2.setDate(d2.getDate() + 1);
     query["createdAt"] = {
-      $lte: d1,
-      $gt: d2,
+      $lte: d2,
+      $gt: d1,
     };
   }
+  // console.log(query);
 
   const d = await Transaction.find(query).sort({ createdAt: -1 });
-  console.log();
+  // console.log(d[0]);
   res.json(
     d.map((e) => {
       return {
